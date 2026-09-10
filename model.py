@@ -385,8 +385,35 @@ def train_lm(model, data, steps, lr=3e-3, block_size=32, batch_size=16, seed=0):
 
     return losses
 
-# Step 13 - estimate_loss (not yet solved)
-# TODO: implement
+# Step 13 - estimate_loss
+def estimate_loss(
+    model,
+    data,
+    split="val",
+    n_batches=8,
+    block_size=32,
+    batch_size=16,
+    seed=0
+):
+    model.eval()
+    generator = torch.Generator().manual_seed(seed)
+
+    losses = []
+
+    with torch.no_grad():
+        for _ in range(n_batches):
+            x, y = data.get_batch(
+                split,
+                block_size=block_size,
+                batch_size=batch_size,
+                generator=generator
+            )
+
+            logits = model(x)
+            loss = lm_loss(logits, y)
+            losses.append(float(loss.item()))
+
+    return sum(losses) / len(losses)
 
 # Step 14 - build_models (not yet solved)
 # TODO: implement

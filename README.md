@@ -22,7 +22,7 @@ python scaffold.py
 - [x] **10.** shared_gradient_check
 - [x] **11.** lm_loss
 - [x] **12.** train_lm
-- [ ] **13.** estimate_loss
+- [x] **13.** estimate_loss
 - [ ] **14.** build_models
 - [ ] **15.** compare_models
 - [ ] **16.** HaltingHead
