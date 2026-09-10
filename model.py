@@ -63,8 +63,20 @@ class CharData:
 
         return x, y
 
-# Step 3 - RMSNorm (not yet solved)
-# TODO: implement
+# Step 3 - RMSNorm
+import torch
+import torch.nn as nn
+
+class RMSNorm(nn.Module):
+    def __init__(self, d, eps=1e-6):
+        super().__init__()
+        self.weight = nn.Parameter(torch.ones(d))
+        self.eps = eps
+
+    def forward(self, x):
+        x = x.float()
+        rms = torch.mean(x ** 2, dim=-1, keepdim=True)
+        return x * torch.rsqrt(rms + self.eps) * self.weight
 
 # Step 4 - CausalSelfAttention (not yet solved)
 # TODO: implement

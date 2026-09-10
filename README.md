@@ -12,7 +12,7 @@ python scaffold.py
 
 - [x] **1.** load_shakespeare
 - [x] **2.** CharData
-- [ ] **3.** RMSNorm
+- [x] **3.** RMSNorm
 - [ ] **4.** CausalSelfAttention
 - [ ] **5.** Block
 - [ ] **6.** LoopedStack
