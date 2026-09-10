@@ -275,8 +275,81 @@ def looped_costs(model, seq_len, batch, dtype_bytes=2):
         "optimizer_moments_bytes": int(optimizer_moments_bytes),
     }
 
-# Step 10 - shared_gradient_check (not yet solved)
-# TODO: implement
+# Step 10 - shared_gradient_check
+import copy
+import torch.nn.functional as F
+
+def shared_gradient_check(model, x, y):
+    K = model.stack.n_loops
+    L = len(model.stack.blocks)
+
+    # Shared model: compute loss and backpropagate.
+    model.zero_grad(set_to_none=True)
+
+    logits = model(x)
+    loss = F.cross_entropy(
+        logits.reshape(-1, logits.size(-1)),
+        y.reshape(-1)
+    )
+    loss.backward()
+
+    shared_grads = [
+        block.attn.qkv.weight.grad.detach().clone()
+        for block in model.stack.blocks
+    ]
+
+    # Build the unrolled twin with one distinct copy of every block
+    # for every loop pass.
+    unrolled = copy.deepcopy(model)
+    unrolled.stack = LoopedStack(
+        [
+            copy.deepcopy(block)
+            for _ in range(K)
+            for block in model.stack.blocks
+        ],
+        1
+    )
+
+    # deepcopy(model) copies gradients from the shared model, so clear
+    # them before computing gradients for the unrolled twin.
+    unrolled.zero_grad(set_to_none=True)
+
+    unrolled_logits = unrolled(x)
+    unrolled_loss = F.cross_entropy(
+        unrolled_logits.reshape(-1, unrolled_logits.size(-1)),
+        y.reshape(-1)
+    )
+    unrolled_loss.backward()
+
+    unrolled_grads = [
+        block.attn.qkv.weight.grad.detach()
+        for block in unrolled.stack.blocks
+    ]
+
+    max_abs_diff = 0.0
+    per_pass_grad_norms = []
+
+    for i in range(L):
+        copy_grads = [
+            unrolled_grads[p * L + i]
+            for p in range(K)
+        ]
+
+        per_pass_grad_norms.append([
+            round(float(grad.norm()), 4)
+            for grad in copy_grads
+        ])
+
+        summed_grad = torch.stack(copy_grads, dim=0).sum(dim=0)
+
+        diff = (shared_grads[i] - summed_grad).abs().max().item()
+        max_abs_diff = max(max_abs_diff, diff)
+
+    return {
+        "max_abs_diff": float(max_abs_diff),
+        "matches": bool(max_abs_diff < 1e-5),
+        "per_pass_grad_norms": per_pass_grad_norms,
+    }
 
 # Step 11 - lm_loss (not yet solved)
 # TODO: implement
