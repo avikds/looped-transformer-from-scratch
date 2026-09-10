@@ -795,6 +795,71 @@ def generate(model, idx, max_new_tokens, n_loops=None, use_cache=True):
 
     return idx
 
-# Step 25 - kv_sharing_experiment (not yet solved)
-# TODO: implement
+# Step 25 - kv_sharing_experiment
+def forward_shared_kv(model, idx):
+    h = model.embed(idx)
+    saved_kv = []
+
+    # Pass 1: run every block normally and save its K/V.
+    for block in model.stack.blocks:
+        h_norm = block.norm1(h)
+        q, k, v = block.attn.project_qkv(h_norm)
+        saved_kv.append((k, v))
+
+        h = h + block.attn.attend(q, k, v)
+        h = h + block.mlp(block.norm2(h))
+
+    # Later passes: compute fresh Q from the new hidden states,
+    # but reuse the K/V produced during pass 1.
+    for _ in range(1, model.stack.n_loops):
+        for b, block in enumerate(model.stack.blocks):
+            h_norm = block.norm1(h)
+            q, _, _ = block.attn.project_qkv(h_norm)
+
+            k_saved, v_saved = saved_kv[b]
+            h = h + block.attn.attend(q, k_saved, v_saved)
+            h = h + block.mlp(block.norm2(h))
+
+    return model.lm_head(model.norm(h))
+
+
+def kv_sharing_experiment(
+    model,
+    data,
+    n_batches=8,
+    block_size=32,
+    batch_size=16,
+    seed=0
+):
+    model.eval()
+    generator = torch.Generator().manual_seed(seed)
+
+    normal_losses = []
+    shared_kv_losses = []
+
+    with torch.no_grad():
+        for _ in range(n_batches):
+            x, y = data.get_batch(
+                "val",
+                block_size=block_size,
+                batch_size=batch_size,
+                generator=generator
+            )
+
+            normal_logits = model(x)
+            normal_losses.append(float(lm_loss(normal_logits, y).item()))
+
+            shared_kv_logits = forward_shared_kv(model, x)
+            shared_kv_losses.append(
+                float(lm_loss(shared_kv_logits, y).item())
+            )
+
+    normal_loss = sum(normal_losses) / len(normal_losses)
+    shared_kv_loss = sum(shared_kv_losses) / len(shared_kv_losses)
+
+    return {
+        "normal_loss": round(normal_loss, 4),
+        "shared_kv_loss": round(shared_kv_loss, 4),
+        "kv_bytes_ratio": 1 / model.stack.n_loops,
+    }
 

@@ -34,7 +34,7 @@ python scaffold.py
 - [x] **22.** depth_report
 - [x] **23.** PassKVCache
 - [x] **24.** generate
-- [ ] **25.** kv_sharing_experiment
+- [x] **25.** kv_sharing_experiment
 
 ---
 
