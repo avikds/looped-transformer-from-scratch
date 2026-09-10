@@ -709,8 +709,41 @@ def depth_report(depths, n_recursions):
         "compute_fraction": round(compute_fraction, 4),
     }
 
-# Step 23 - PassKVCache (not yet solved)
-# TODO: implement
+# Step 23 - PassKVCache
+class PassKVCache:
+    def __init__(self):
+        self.store = {}
+
+    def append(self, key, k, v):
+        if key in self.store:
+            cached_k, cached_v = self.store[key]
+            k = torch.cat([cached_k, k], dim=2)
+            v = torch.cat([cached_v, v], dim=2)
+
+        self.store[key] = (k, v)
+        return k, v
+
+    def __len__(self):
+        if not self.store:
+            return 0
+
+        k, _ = next(iter(self.store.values()))
+        return k.size(2)
+
+    def n_entries(self):
+        return len(self.store)
+
+
+def block_step(block, x, cache, key):
+    h = block.norm1(x)
+    q, k, v = block.attn.project_qkv(h)
+
+    k, v = cache.append(key, k, v)
+
+    x = x + block.attn.attend(q, k, v)
+    x = x + block.mlp(block.norm2(x))
+
+    return x
 
 # Step 24 - generate (not yet solved)
 # TODO: implement
