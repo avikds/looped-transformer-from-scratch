@@ -128,9 +128,6 @@ class CausalSelfAttention(nn.Module):
         return self.attend(*self.project_qkv(x))
 
 # Step 5 - Block
-import torch
-import torch.nn as nn
-
 class Block(nn.Module):
     def __init__(self, d, n_heads, mlp_mult=4):
         super().__init__()
