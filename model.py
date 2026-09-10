@@ -207,8 +207,25 @@ class LoopedGPT(nn.Module):
         x = self.norm(x)
         return self.lm_head(x)
 
-# Step 8 - parameter_breakdown (not yet solved)
-# TODO: implement
+# Step 8 - parameter_breakdown
+def parameter_breakdown(model):
+    embedding = model.tok_emb.weight.numel() + model.pos_emb.weight.numel()
+    blocks = sum(p.numel() for p in model.stack.parameters())
+    total = sum(p.numel() for p in model.parameters())
+
+    other = total - embedding - blocks
+
+    unrolled_total = total + (model.stack.n_loops - 1) * blocks
+    embedding_share = round(embedding / total, 4)
+
+    return {
+        "embedding": int(embedding),
+        "blocks": int(blocks),
+        "other": int(other),
+        "total": int(total),
+        "unrolled_total": int(unrolled_total),
+        "embedding_share": embedding_share,
+    }
 
 # Step 9 - looped_costs (not yet solved)
 # TODO: implement

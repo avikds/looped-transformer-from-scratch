@@ -17,7 +17,7 @@ python scaffold.py
 - [x] **5.** Block
 - [x] **6.** LoopedStack
 - [x] **7.** LoopedGPT
-- [ ] **8.** parameter_breakdown
+- [x] **8.** parameter_breakdown
 - [ ] **9.** looped_costs
 - [ ] **10.** shared_gradient_check
 - [ ] **11.** lm_loss
