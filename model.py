@@ -654,8 +654,44 @@ def mor_expert_choice(block, router, h, capacities):
 
     return h, depths
 
-# Step 21 - mor_token_choice (not yet solved)
-# TODO: implement
+# Step 21 - mor_token_choice
+def mor_token_choice(block, router, h, n_recursions):
+    probs = router.token_probs(h)
+
+    chosen = torch.argmax(probs, dim=-1)
+    depths = chosen + 1
+
+    gate = probs.gather(
+        -1,
+        chosen.unsqueeze(-1)
+    ).squeeze(-1)
+
+    for r in range(1, n_recursions + 1):
+        selected = depths >= r
+        out = block(h)
+
+        h = torch.where(
+            selected.unsqueeze(-1),
+            h + gate.unsqueeze(-1) * out,
+            h
+        )
+
+    total_tokens = depths.numel()
+    balance_loss = torch.tensor(
+        0.0,
+        dtype=probs.dtype,
+        device=probs.device
+    )
+
+    for r in range(1, n_recursions + 1):
+        chosen_r = chosen == (r - 1)
+        f_r = chosen_r.float().mean()
+        P_r = probs[..., r - 1].mean()
+        balance_loss = balance_loss + f_r * P_r
+
+    balance_loss = n_recursions * balance_loss
+
+    return h, depths.to(torch.int64), balance_loss
 
 # Step 22 - depth_report (not yet solved)
 # TODO: implement
