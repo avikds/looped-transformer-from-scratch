@@ -64,7 +64,6 @@ class CharData:
         return x, y
 
 # Step 3 - RMSNorm
-import torch
 import torch.nn as nn
 
 class RMSNorm(nn.Module):
