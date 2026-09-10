@@ -693,8 +693,21 @@ def mor_token_choice(block, router, h, n_recursions):
 
     return h, depths.to(torch.int64), balance_loss
 
-# Step 22 - depth_report (not yet solved)
-# TODO: implement
+# Step 22 - depth_report
+def depth_report(depths, n_recursions):
+    histogram = torch.bincount(
+        depths.reshape(-1).to(torch.int64),
+        minlength=n_recursions + 1
+    )[:n_recursions + 1]
+
+    mean_depth = float(depths.float().mean().item())
+    compute_fraction = mean_depth / n_recursions
+
+    return {
+        "histogram": histogram.tolist(),
+        "mean_depth": round(mean_depth, 4),
+        "compute_fraction": round(compute_fraction, 4),
+    }
 
 # Step 23 - PassKVCache (not yet solved)
 # TODO: implement

@@ -31,7 +31,7 @@ python scaffold.py
 - [x] **19.** RecursionRouter
 - [x] **20.** mor_expert_choice
 - [x] **21.** mor_token_choice
-- [ ] **22.** depth_report
+- [x] **22.** depth_report
 - [ ] **23.** PassKVCache
 - [ ] **24.** generate
 - [ ] **25.** kv_sharing_experiment
