@@ -227,8 +227,53 @@ def parameter_breakdown(model):
         "embedding_share": embedding_share,
     }
 
-# Step 9 - looped_costs (not yet solved)
-# TODO: implement
+# Step 9 - looped_costs
+def looped_costs(model, seq_len, batch, dtype_bytes=2):
+    L = len(model.stack.blocks)
+    K = model.stack.n_loops
+    d = model.tok_emb.embedding_dim
+    V = model.tok_emb.num_embeddings
+
+    pb = parameter_breakdown(model)
+    total_params = pb["total"]
+    blocks = pb["blocks"]
+
+    block_applications = L * K
+    applied_params_per_token = K * blocks + d * V
+
+    forward_flops_per_token = 2 * applied_params_per_token
+    train_flops_per_token = 6 * applied_params_per_token
+
+    kv_cache_bytes = (
+        2
+        * L
+        * K
+        * d
+        * seq_len
+        * batch
+        * dtype_bytes
+    )
+
+    kv_cache_bytes_if_shared = (
+        2
+        * L
+        * d
+        * seq_len
+        * batch
+        * dtype_bytes
+    )
+
+    optimizer_moments_bytes = 2 * 4 * total_params
+
+    return {
+        "block_applications": int(block_applications),
+        "applied_params_per_token": int(applied_params_per_token),
+        "forward_flops_per_token": int(forward_flops_per_token),
+        "train_flops_per_token": int(train_flops_per_token),
+        "kv_cache_bytes": int(kv_cache_bytes),
+        "kv_cache_bytes_if_shared": int(kv_cache_bytes_if_shared),
+        "optimizer_moments_bytes": int(optimizer_moments_bytes),
+    }
 
 # Step 10 - shared_gradient_check (not yet solved)
 # TODO: implement
