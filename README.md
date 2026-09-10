@@ -26,7 +26,7 @@ python scaffold.py
 - [x] **14.** build_models
 - [x] **15.** compare_models
 - [x] **16.** HaltingHead
-- [ ] **17.** act_weights
+- [x] **17.** act_weights
 - [ ] **18.** act_forward
 - [ ] **19.** RecursionRouter
 - [ ] **20.** mor_expert_choice

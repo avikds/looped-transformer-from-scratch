@@ -512,8 +512,56 @@ class HaltingHead(nn.Module):
     def forward(self, h):
         return torch.sigmoid(self.linear(h)).squeeze(-1)
 
-# Step 17 - act_weights (not yet solved)
-# TODO: implement
+# Step 17 - act_weights
+def act_weights(halt_probs, threshold=0.99):
+    cumulative = halt_probs.cumsum(dim=-1)
+
+    reached = cumulative >= threshold
+    has_reached = reached.any(dim=-1)
+
+    # First pass whose cumulative halting probability reaches threshold.
+    first_reached = reached.to(torch.int64).argmax(dim=-1)
+
+    # If threshold is never reached, halt on the final pass.
+    S = halt_probs.size(-1)
+    N = torch.where(
+        has_reached,
+        first_reached,
+        torch.full_like(first_reached, S - 1)
+    )
+
+    # Sum of halting probabilities before pass N.
+    cumulative_before = torch.zeros_like(N, dtype=halt_probs.dtype)
+    has_previous = N > 0
+
+    if has_previous.any():
+        cumulative_before = torch.where(
+            has_previous,
+            cumulative.gather(-1, (N - 1).clamp_min(0).unsqueeze(-1)).squeeze(-1),
+            cumulative_before
+        )
+
+    remainder = 1.0 - cumulative_before
+
+    # Use the original probabilities before N, the remainder at N,
+    # and zero after N.
+    S_idx = torch.arange(S, device=halt_probs.device).view(1, 1, S)
+    weights = torch.where(
+        S_idx < N.unsqueeze(-1),
+        halt_probs,
+        torch.zeros_like(halt_probs)
+    )
+
+    weights = torch.where(
+        S_idx == N.unsqueeze(-1),
+        remainder.unsqueeze(-1),
+        weights
+    )
+
+    n_steps = (N + 1).to(torch.int64)
+    ponder = n_steps.to(halt_probs.dtype) + remainder
+
+    return weights, n_steps, ponder
 
 # Step 18 - act_forward (not yet solved)
 # TODO: implement
