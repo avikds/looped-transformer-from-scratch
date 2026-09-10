@@ -130,8 +130,26 @@ class CausalSelfAttention(nn.Module):
     def forward(self, x):
         return self.attend(*self.project_qkv(x))
 
-# Step 5 - Block (not yet solved)
-# TODO: implement
+# Step 5 - Block
+import torch
+import torch.nn as nn
+
+class Block(nn.Module):
+    def __init__(self, d, n_heads, mlp_mult=4):
+        super().__init__()
+        self.norm1 = RMSNorm(d)
+        self.attn = CausalSelfAttention(d, n_heads)
+        self.norm2 = RMSNorm(d)
+        self.mlp = nn.Sequential(
+            nn.Linear(d, mlp_mult * d),
+            nn.GELU(),
+            nn.Linear(mlp_mult * d, d)
+        )
+
+    def forward(self, x):
+        x = x + self.attn(self.norm1(x))
+        x = x + self.mlp(self.norm2(x))
+        return x
 
 # Step 6 - LoopedStack (not yet solved)
 # TODO: implement
