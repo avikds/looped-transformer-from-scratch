@@ -15,7 +15,7 @@ python scaffold.py
 - [x] **3.** RMSNorm
 - [x] **4.** CausalSelfAttention
 - [x] **5.** Block
-- [ ] **6.** LoopedStack
+- [x] **6.** LoopedStack
 - [ ] **7.** LoopedGPT
 - [ ] **8.** parameter_breakdown
 - [ ] **9.** looped_costs

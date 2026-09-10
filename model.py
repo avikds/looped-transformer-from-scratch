@@ -145,8 +145,32 @@ class Block(nn.Module):
         x = x + self.mlp(self.norm2(x))
         return x
 
-# Step 6 - LoopedStack (not yet solved)
-# TODO: implement
+# Step 6 - LoopedStack
+class LoopedStack(nn.Module):
+    def __init__(self, blocks, n_loops):
+        super().__init__()
+        self.blocks = nn.ModuleList(blocks)
+        self.n_loops = n_loops
+
+    def forward(self, x, n_loops=None, return_passes=False):
+        loops = self.n_loops if n_loops is None else n_loops
+        passes = []
+
+        for _ in range(loops):
+            for block in self.blocks:
+                x = block(x)
+
+            if return_passes:
+                passes.append(x)
+
+        if return_passes:
+            return passes
+
+        return x
+
+    def block_applications(self, n_loops=None):
+        loops = self.n_loops if n_loops is None else n_loops
+        return len(self.blocks) * loops
 
 # Step 7 - LoopedGPT (not yet solved)
 # TODO: implement
