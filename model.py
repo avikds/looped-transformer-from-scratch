@@ -78,8 +78,57 @@ class RMSNorm(nn.Module):
         rms = torch.mean(x ** 2, dim=-1, keepdim=True)
         return x * torch.rsqrt(rms + self.eps) * self.weight
 
-# Step 4 - CausalSelfAttention (not yet solved)
-# TODO: implement
+# Step 4 - CausalSelfAttention
+import math
+import torch
+import torch.nn as nn
+
+class CausalSelfAttention(nn.Module):
+    def __init__(self, d, n_heads):
+        super().__init__()
+        self.d = d
+        self.n_heads = n_heads
+        self.head_dim = d // n_heads
+        self.qkv = nn.Linear(d, 3 * d, bias=False)
+        self.proj = nn.Linear(d, d, bias=False)
+
+    def project_qkv(self, x):
+        B, T, _ = x.shape
+
+        qkv = self.qkv(x)
+        qkv = qkv.view(B, T, 3, self.n_heads, self.head_dim)
+        qkv = qkv.permute(2, 0, 3, 1, 4)
+
+        q, k, v = qkv.unbind(0)
+        return q, k, v
+
+    def attend(self, q, k, v):
+        _, _, T, _ = q.shape
+        _, _, S, _ = k.shape
+
+        scores = (q @ k.transpose(-2, -1)) / math.sqrt(self.head_dim)
+
+        offset = S - T
+        mask = torch.tril(
+            torch.ones(T, S, dtype=torch.bool, device=q.device),
+            diagonal=offset
+        )
+
+        scores = scores.masked_fill(
+            ~mask.unsqueeze(0).unsqueeze(0),
+            torch.finfo(scores.dtype).min
+        )
+
+        weights = torch.softmax(scores, dim=-1)
+        out = weights @ v
+
+        out = out.transpose(1, 2).contiguous()
+        out = out.view(out.shape[0], out.shape[1], self.d)
+
+        return self.proj(out)
+
+    def forward(self, x):
+        return self.attend(*self.project_qkv(x))
 
 # Step 5 - Block (not yet solved)
 # TODO: implement
