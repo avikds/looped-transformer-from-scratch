@@ -25,7 +25,7 @@ python scaffold.py
 - [x] **13.** estimate_loss
 - [x] **14.** build_models
 - [x] **15.** compare_models
-- [ ] **16.** HaltingHead
+- [x] **16.** HaltingHead
 - [ ] **17.** act_weights
 - [ ] **18.** act_forward
 - [ ] **19.** RecursionRouter

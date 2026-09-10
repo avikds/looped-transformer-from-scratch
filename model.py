@@ -503,8 +503,14 @@ def compare_models(
 
     return report
 
-# Step 16 - HaltingHead (not yet solved)
-# TODO: implement
+# Step 16 - HaltingHead
+class HaltingHead(nn.Module):
+    def __init__(self, d):
+        super().__init__()
+        self.linear = nn.Linear(d, 1)
+
+    def forward(self, h):
+        return torch.sigmoid(self.linear(h)).squeeze(-1)
 
 # Step 17 - act_weights (not yet solved)
 # TODO: implement
