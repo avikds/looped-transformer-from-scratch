@@ -358,8 +358,32 @@ def lm_loss(logits, targets):
         targets.reshape(-1)
     )
 
-# Step 12 - train_lm (not yet solved)
-# TODO: implement
+# Step 12 - train_lm
+def train_lm(model, data, steps, lr=3e-3, block_size=32, batch_size=16, seed=0):
+    model.train()
+
+    optimizer = torch.optim.AdamW(model.parameters(), lr=lr)
+    generator = torch.Generator().manual_seed(seed)
+
+    losses = []
+
+    for _ in range(steps):
+        x, y = data.get_batch(
+            "train",
+            block_size=block_size,
+            batch_size=batch_size,
+            generator=generator
+        )
+
+        optimizer.zero_grad()
+        logits = model(x)
+        loss = lm_loss(logits, y)
+        loss.backward()
+        optimizer.step()
+
+        losses.append(float(loss.item()))
+
+    return losses
 
 # Step 13 - estimate_loss (not yet solved)
 # TODO: implement
