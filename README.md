@@ -20,7 +20,7 @@ python scaffold.py
 - [x] **8.** parameter_breakdown
 - [x] **9.** looped_costs
 - [x] **10.** shared_gradient_check
-- [ ] **11.** lm_loss
+- [x] **11.** lm_loss
 - [ ] **12.** train_lm
 - [ ] **13.** estimate_loss
 - [ ] **14.** build_models

@@ -351,8 +351,12 @@ def shared_gradient_check(model, x, y):
         "per_pass_grad_norms": per_pass_grad_norms,
     }
 
-# Step 11 - lm_loss (not yet solved)
-# TODO: implement
+# Step 11 - lm_loss
+def lm_loss(logits, targets):
+    return F.cross_entropy(
+        logits.reshape(-1, logits.size(-1)),
+        targets.reshape(-1)
+    )
 
 # Step 12 - train_lm (not yet solved)
 # TODO: implement
