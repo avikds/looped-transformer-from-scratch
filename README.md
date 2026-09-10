@@ -28,7 +28,7 @@ python scaffold.py
 - [x] **16.** HaltingHead
 - [x] **17.** act_weights
 - [x] **18.** act_forward
-- [ ] **19.** RecursionRouter
+- [x] **19.** RecursionRouter
 - [ ] **20.** mor_expert_choice
 - [ ] **21.** mor_token_choice
 - [ ] **22.** depth_report

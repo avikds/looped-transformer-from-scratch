@@ -588,8 +588,17 @@ def act_forward(stack, head, x, max_loops, threshold=0.99):
 
     return y, n_steps, ponder.mean()
 
-# Step 19 - RecursionRouter (not yet solved)
-# TODO: implement
+# Step 19 - RecursionRouter
+class RecursionRouter(nn.Module):
+    def __init__(self, d, n_recursions):
+        super().__init__()
+        self.linear = nn.Linear(d, n_recursions)
+
+    def expert_scores(self, h, r):
+        return torch.sigmoid(self.linear(h)[..., r])
+
+    def token_probs(self, h):
+        return torch.softmax(self.linear(h), dim=-1)
 
 # Step 20 - mor_expert_choice (not yet solved)
 # TODO: implement
