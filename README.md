@@ -36,6 +36,25 @@ python scaffold.py
 - [x] **24.** generate
 - [x] **25.** kv_sharing_experiment
 
----
+## Results
 
-Built on Deep-ML.
+```
+Tiny Shakespeare: 180,000 train / 20,000 val characters, vocab 62
+
+looped 2x2 model: 60,528 parameters (7% embedding), unrolled twin would store 116,496
+  4 block applications, 689,472 training FLOPs/token, KV cache 24,576 B (shared across loops: 12,288 B)
+  shared-block gradient = sum over passes: True (max diff 0.0e+00); per-pass grad norms of block 0: [2.1419, 1.6326]
+
+after 150 steps (toy scale: ordering can flip across seeds):
+  looped    params  60,528  applications 4  train 3.030  val 3.028
+  unrolled  params 116,496  applications 4  train 2.849  val 2.916
+  shallow   params  60,528  applications 2  train 2.995  val 2.992
+
+ACT with an untrained halting head: mean steps 4.00 of 4, ponder cost 4.644
+  MoR expert-choice depth histogram [16, 24, 16, 8], compute fraction 0.4167
+  MoR token-choice  depth histogram [0, 15, 31, 18], balance loss 1.061
+
+cached decode == full forward: True
+  'ROMEO: the the the the the the '
+  KV sharing across loops: val loss 3.028 -> 3.068 at 50% of the cache
+```
