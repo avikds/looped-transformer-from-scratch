@@ -23,7 +23,7 @@ python scaffold.py
 - [x] **11.** lm_loss
 - [x] **12.** train_lm
 - [x] **13.** estimate_loss
-- [ ] **14.** build_models
+- [x] **14.** build_models
 - [ ] **15.** compare_models
 - [ ] **16.** HaltingHead
 - [ ] **17.** act_weights

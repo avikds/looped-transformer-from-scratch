@@ -415,8 +415,51 @@ def estimate_loss(
 
     return sum(losses) / len(losses)
 
-# Step 14 - build_models (not yet solved)
-# TODO: implement
+# Step 14 - build_models
+def build_models(
+    vocab_size,
+    d,
+    n_heads,
+    n_blocks,
+    n_loops,
+    block_size,
+    seed=0
+):
+    torch.manual_seed(seed)
+    looped = LoopedGPT(
+        vocab_size,
+        d,
+        n_heads,
+        n_blocks,
+        n_loops,
+        block_size
+    )
+
+    torch.manual_seed(seed)
+    unrolled = LoopedGPT(
+        vocab_size,
+        d,
+        n_heads,
+        n_blocks * n_loops,
+        1,
+        block_size
+    )
+
+    torch.manual_seed(seed)
+    shallow = LoopedGPT(
+        vocab_size,
+        d,
+        n_heads,
+        n_blocks,
+        1,
+        block_size
+    )
+
+    return {
+        "looped": looped,
+        "unrolled": unrolled,
+        "shallow": shallow,
+    }
 
 # Step 15 - compare_models (not yet solved)
 # TODO: implement
