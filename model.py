@@ -461,8 +461,47 @@ def build_models(
         "shallow": shallow,
     }
 
-# Step 15 - compare_models (not yet solved)
-# TODO: implement
+# Step 15 - compare_models
+def compare_models(
+    models,
+    data,
+    steps,
+    lr=3e-3,
+    block_size=32,
+    batch_size=16,
+    seed=0
+):
+    report = {}
+
+    for name, model in models.items():
+        losses = train_lm(
+            model,
+            data,
+            steps=steps,
+            lr=lr,
+            block_size=block_size,
+            batch_size=batch_size,
+            seed=seed
+        )
+
+        val_loss = estimate_loss(
+            model,
+            data,
+            split="val",
+            n_batches=8,
+            block_size=block_size,
+            batch_size=batch_size,
+            seed=seed
+        )
+
+        report[name] = {
+            "params": int(sum(p.numel() for p in model.parameters())),
+            "block_applications": int(model.stack.block_applications()),
+            "train_loss_final": round(float(losses[-1]), 4),
+            "val_loss": round(float(val_loss), 4),
+        }
+
+    return report
 
 # Step 16 - HaltingHead (not yet solved)
 # TODO: implement
