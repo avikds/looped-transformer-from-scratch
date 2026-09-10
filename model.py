@@ -79,8 +79,6 @@ class RMSNorm(nn.Module):
 
 # Step 4 - CausalSelfAttention
 import math
-import torch
-import torch.nn as nn
 
 class CausalSelfAttention(nn.Module):
     def __init__(self, d, n_heads):
