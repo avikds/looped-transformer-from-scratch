@@ -745,8 +745,55 @@ def block_step(block, x, cache, key):
 
     return x
 
-# Step 24 - generate (not yet solved)
-# TODO: implement
+# Step 24 - generate
+@torch.no_grad()
+def generate(model, idx, max_new_tokens, n_loops=None, use_cache=True):
+    model.eval()
+
+    loops = model.stack.n_loops if n_loops is None else n_loops
+
+    if not use_cache:
+        for _ in range(max_new_tokens):
+            idx_cond = idx[:, -model.block_size:]
+            logits = model(idx_cond, n_loops=loops)
+            next_token = torch.argmax(logits[:, -1, :], dim=-1, keepdim=True)
+            idx = torch.cat([idx, next_token], dim=1)
+
+        return idx
+
+    cache = PassKVCache()
+
+    # Process the full prompt first, using its true position offset.
+    start = 0
+    x_new = idx
+    h = model.embed(x_new, start=start)
+
+    for p in range(loops):
+        for b, block in enumerate(model.stack.blocks):
+            h = block_step(block, h, cache, (p, b))
+
+    start += x_new.size(1)
+
+    logits = model.lm_head(model.norm(h))[:, -1, :]
+    next_token = torch.argmax(logits, dim=-1, keepdim=True)
+    idx = torch.cat([idx, next_token], dim=1)
+
+    # Generate one token at a time using the per-pass, per-block cache.
+    for _ in range(max_new_tokens - 1):
+        x_new = idx[:, -1:]
+        h = model.embed(x_new, start=start)
+
+        for p in range(loops):
+            for b, block in enumerate(model.stack.blocks):
+                h = block_step(block, h, cache, (p, b))
+
+        start += 1
+
+        logits = model.lm_head(model.norm(h))[:, -1, :]
+        next_token = torch.argmax(logits, dim=-1, keepdim=True)
+        idx = torch.cat([idx, next_token], dim=1)
+
+    return idx
 
 # Step 25 - kv_sharing_experiment (not yet solved)
 # TODO: implement

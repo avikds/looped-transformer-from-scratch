@@ -33,7 +33,7 @@ python scaffold.py
 - [x] **21.** mor_token_choice
 - [x] **22.** depth_report
 - [x] **23.** PassKVCache
-- [ ] **24.** generate
+- [x] **24.** generate
 - [ ] **25.** kv_sharing_experiment
 
 ---
