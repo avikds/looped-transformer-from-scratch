@@ -563,8 +563,30 @@ def act_weights(halt_probs, threshold=0.99):
 
     return weights, n_steps, ponder
 
-# Step 18 - act_forward (not yet solved)
-# TODO: implement
+# Step 18 - act_forward
+def act_forward(stack, head, x, max_loops, threshold=0.99):
+    states = stack(
+        x,
+        n_loops=max_loops,
+        return_passes=True
+    )
+
+    halt_probs = torch.stack(
+        [head(state) for state in states],
+        dim=-1
+    )
+
+    weights, n_steps, ponder = act_weights(
+        halt_probs,
+        threshold=threshold
+    )
+
+    y = sum(
+        state * weights[..., s].unsqueeze(-1)
+        for s, state in enumerate(states)
+    )
+
+    return y, n_steps, ponder.mean()
 
 # Step 19 - RecursionRouter (not yet solved)
 # TODO: implement
