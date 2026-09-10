@@ -600,8 +600,59 @@ class RecursionRouter(nn.Module):
     def token_probs(self, h):
         return torch.softmax(self.linear(h), dim=-1)
 
-# Step 20 - mor_expert_choice (not yet solved)
-# TODO: implement
+# Step 20 - mor_expert_choice
+def mor_expert_choice(block, router, h, capacities):
+    B, T, _ = h.shape
+
+    active = torch.ones(
+        B,
+        T,
+        dtype=torch.bool,
+        device=h.device
+    )
+
+    depths = torch.zeros(
+        B,
+        T,
+        dtype=torch.int64,
+        device=h.device
+    )
+
+    for r, capacity in enumerate(capacities):
+        scores = router.expert_scores(h, r)
+
+        masked_scores = scores.masked_fill(~active, float("-inf"))
+
+        k = min(capacity, T)
+        _, top_indices = torch.topk(
+            masked_scores,
+            k=k,
+            dim=1
+        )
+
+        selected = torch.zeros(
+            B,
+            T,
+            dtype=torch.bool,
+            device=h.device
+        )
+        selected.scatter_(1, top_indices, True)
+
+        selected = selected & active
+
+        out = block(h)
+
+        h = torch.where(
+            selected.unsqueeze(-1),
+            h + scores.unsqueeze(-1) * out,
+            h
+        )
+
+        depths = depths + selected.to(torch.int64)
+
+        active = selected
+
+    return h, depths
 
 # Step 21 - mor_token_choice (not yet solved)
 # TODO: implement

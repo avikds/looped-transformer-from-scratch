@@ -29,7 +29,7 @@ python scaffold.py
 - [x] **17.** act_weights
 - [x] **18.** act_forward
 - [x] **19.** RecursionRouter
-- [ ] **20.** mor_expert_choice
+- [x] **20.** mor_expert_choice
 - [ ] **21.** mor_token_choice
 - [ ] **22.** depth_report
 - [ ] **23.** PassKVCache
