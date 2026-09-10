@@ -16,7 +16,7 @@ python scaffold.py
 - [x] **4.** CausalSelfAttention
 - [x] **5.** Block
 - [x] **6.** LoopedStack
-- [ ] **7.** LoopedGPT
+- [x] **7.** LoopedGPT
 - [ ] **8.** parameter_breakdown
 - [ ] **9.** looped_costs
 - [ ] **10.** shared_gradient_check

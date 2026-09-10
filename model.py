@@ -172,8 +172,40 @@ class LoopedStack(nn.Module):
         loops = self.n_loops if n_loops is None else n_loops
         return len(self.blocks) * loops
 
-# Step 7 - LoopedGPT (not yet solved)
-# TODO: implement
+# Step 7 - LoopedGPT
+class LoopedGPT(nn.Module):
+    def __init__(self, vocab_size, d, n_heads, n_blocks, n_loops, block_size):
+        super().__init__()
+        self.block_size = block_size
+        self.tok_emb = nn.Embedding(vocab_size, d)
+        self.pos_emb = nn.Embedding(block_size, d)
+
+        self.stack = LoopedStack(
+            [Block(d, n_heads) for _ in range(n_blocks)],
+            n_loops
+        )
+
+        self.norm = RMSNorm(d)
+
+        self.lm_head = nn.Linear(d, vocab_size, bias=False)
+        self.lm_head.weight = self.tok_emb.weight
+
+    def embed(self, idx, start=0):
+        _, T = idx.shape
+
+        positions = torch.arange(
+            start,
+            start + T,
+            device=idx.device
+        )
+
+        return self.tok_emb(idx) + self.pos_emb(positions)
+
+    def forward(self, idx, n_loops=None):
+        x = self.embed(idx)
+        x = self.stack(x, n_loops=n_loops)
+        x = self.norm(x)
+        return self.lm_head(x)
 
 # Step 8 - parameter_breakdown (not yet solved)
 # TODO: implement
